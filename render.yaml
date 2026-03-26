@@ -41,7 +41,6 @@ services:
   - type: web
     name: icehrm
     runtime: docker
-    dockerfilePath: ./Dockerfile-prod
     dockerContext: .
     plan: starter
     healthCheckPath: /app/health.php

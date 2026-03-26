@@ -1,55 +1,77 @@
+# Build stage - compile assets
+FROM node:18-alpine AS builder
+
+WORKDIR /build
+
+# Copy package files
+COPY package.json package-lock.json* ./
+COPY web/package.json web/package-lock.json* ./web/
+COPY gulpfile.js ./
+
+# Copy all source files needed for build
+COPY index.php ./
+COPY web/ ./web/
+COPY app/ ./app/
+COPY core/ ./core/
+COPY extensions/ ./extensions/
+COPY docker/ ./docker/
+
+# Install dependencies and build assets
+RUN npm install && cd web && npm install && cd ..
+RUN npm run asset:build:prod
+
+# Verify files exist
+RUN ls -la /build/ && ls -la /build/app/
+
+# Production stage
 FROM alpine:3.17.1
-LABEL Maintainer="Thilina, Pituwala <thilina@icehrm.com>" \
-      Description="IceHrm Docker Container with Nginx & PHP-FPM based on Alpine Linux."
+LABEL Maintainer="Thilina Pituwala <thilina@icehrm.com>" \
+      Description="IceHrm Production Container with Nginx & PHP-FPM based on Alpine Linux."
 
-ENV PHPIZE_DEPS \
-		autoconf \
-		dpkg-dev dpkg \
-		file \
-		g++ \
-		gcc \
-		libc-dev \
-		make \
-		pkgconf \
-		musl-dev \
-		re2c \
-		php81-dev \
-		php81-pear
+# Install packages (no dev dependencies, no xdebug)
+RUN apk --no-cache add \
+    php81 php81-fpm php81-opcache php81-mysqli php81-json php81-openssl php81-curl \
+    php81-zlib php81-xml php81-phar php81-intl php81-dom php81-simplexml php81-xmlreader \
+    php81-ctype php81-session php81-mbstring php81-gd php81-tokenizer php81-zip php81-iconv \
+    nginx supervisor curl
 
-RUN apk --no-cache add bind-tools
-
-# Install packages
-RUN apk --no-cache add php php-fpm php-opcache php-mysqli php-json php-openssl php-curl \
-    php-zlib php-xml php-phar php-intl php-dom php-simplexml php-xmlreader php-ctype php-session \
-    php-mbstring php-gd php-tokenizer php-zip unzip nginx supervisor curl nodejs npm
-
-# Install xdebug
-RUN apk add --no-cache $PHPIZE_DEPS \
-    && pecl install xdebug-3.1.1
+# Create symlink for php command (if not exists)
+RUN ln -sf /usr/bin/php81 /usr/bin/php
 
 # Configure nginx
-COPY docker/development/config/nginx.conf /etc/nginx/nginx.conf
-# Remove default server definition
-#RUN rm /etc/nginx/conf.d/default.conf
+COPY --from=builder /build/docker/prod/config/nginx.conf /etc/nginx/nginx.conf
 
 # Configure PHP-FPM
-COPY docker/development/config/fpm-pool.conf /etc/php81/php-fpm.d/www.conf
-COPY docker/development/config/php.ini /etc/php81/conf.d/custom.ini
+COPY --from=builder /build/docker/prod/config/fpm-pool.conf /etc/php81/php-fpm.d/www.conf
+COPY --from=builder /build/docker/prod/config/php.ini /etc/php81/conf.d/custom.ini
 
 # Configure supervisord
-COPY docker/development/config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY --from=builder /build/docker/prod/config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Setup document root
 RUN mkdir -p /var/www/html
 
-# Make sure files/folders needed by the processes are accessable when they run under the nobody user
-RUN chown -R nobody.nobody /var/www/html && \
-  chown -R nobody.nobody /run && \
-  chown -R nobody.nobody /var/lib/nginx && \
-  chown -R nobody.nobody /var/log/nginx
+# Copy application code from builder (with compiled assets)
+COPY --from=builder --chown=nobody:nobody /build/index.php /var/www/html/index.php
+COPY --from=builder --chown=nobody:nobody /build/app /var/www/html/app/
+COPY --from=builder --chown=nobody:nobody /build/core /var/www/html/core/
+COPY --from=builder --chown=nobody:nobody /build/extensions /var/www/html/extensions/
+COPY --from=builder --chown=nobody:nobody /build/web /var/www/html/web/
 
-# Switch to use a non-root user from here on
-USER nobody
+# Copy production config (overwrites the one from app/)
+COPY --from=builder --chown=nobody:nobody /build/docker/prod/config/config.php /var/www/html/app/config.php
+
+# Verify files were copied
+RUN ls -la /var/www/html/ && ls -la /var/www/html/app/
+
+# Create data directory for uploads and logs
+RUN mkdir -p /var/www/html/app/data && \
+    chown -R nobody:nobody /var/www/html/app/data
+
+# Make sure files/folders needed by the processes are accessible when they run under the nobody user
+RUN chown -R nobody:nobody /run && \
+    chown -R nobody:nobody /var/lib/nginx && \
+    chown -R nobody:nobody /var/log/nginx
 
 # Add application
 WORKDIR /var/www/html
@@ -57,8 +79,11 @@ WORKDIR /var/www/html
 # Expose the port nginx is reachable on
 EXPOSE 8080
 
+# Switch to use a non-root user from here on
+USER nobody
+
 # Let supervisord start nginx & php-fpm
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
 
-# Configure a healthcheck to validate that everything is up&running
-HEALTHCHECK --timeout=10s CMD curl --silent --fail http://127.0.0.1:8080/fpm-ping
+# Configure a healthcheck to validate that everything is up & running
+HEALTHCHECK --timeout=10s CMD curl --silent --fail http://127.0.0.1:8080/app/health.php || exit 1

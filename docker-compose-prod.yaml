@@ -23,7 +23,7 @@ services:
   icehrm:
     build:
       context: .
-      dockerfile: Dockerfile-prod
+      dockerfile: Dockerfile
     container_name: icehrm-app
     restart: unless-stopped
     ports:
