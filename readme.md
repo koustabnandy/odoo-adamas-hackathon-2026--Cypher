@@ -163,7 +163,7 @@ This will update your IceHrm installation to the latest version
 ### Useful Links
 * IceHrm Opensource Blog: [http://icehrm.org](http://icehrm.org)
 * IceHrm Cloud Hosting: [https://icehrm.com](https://icehrm.com)
-* IceHrm Documentation (Opensource and Commercial): [https://icehrm.com/explore/docs/](https://icehrm.com/explore/docs/)
+* IceHrm Documentation (Opensource and Commercial): [https://icehrm.com/docs/](https://icehrm.com/explore/docs/)
 * IceHrm Blog: [https://icehrm.com/blog](http://icehrm.com/blog)
 * Purchase Extensions: [https://icehrm.com//buy-icehrm-modules](https://icehrm.com//buy-icehrm-modules)
 * Report Issues: [https://github.com/gamonoid/icehrm/issues](https://github.com/gamonoid/icehrm/issues)
