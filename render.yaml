@@ -1,0 +1,68 @@
+# Render Blueprint for IceHrm
+# Documentation: https://render.com/docs/blueprint-spec
+#
+# Prerequisites:
+#   - A MySQL database (Render doesn't offer managed MySQL)
+#   - Use an external provider like PlanetScale, AWS RDS, or DigitalOcean Managed MySQL
+#
+# Deployment:
+#   1. Fork this repository to your GitHub account
+#   2. Create a MySQL database with an external provider
+#   3. Import the schema: mysql -h <host> -u <user> -p <database> < docker/init.sql
+#   4. Go to https://dashboard.render.com/blueprints
+#   5. Click "New Blueprint Instance" and connect your repository
+#   6. Set the required environment variables (DB_HOST, DB_USER, DB_PASSWORD, etc.)
+#   7. Deploy
+
+services:
+  # Main IceHrm Web Application
+  - type: web
+    name: icehrm
+    runtime: docker
+    dockerfilePath: ./Dockerfile-prod
+    dockerContext: .
+    plan: starter
+    healthCheckPath: /app/health.php
+    envVars:
+      - key: APP_BASE_URL
+        sync: false
+      - key: DB_HOST
+        sync: false
+      - key: DB_NAME
+        value: icehrm
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+
+  # Background Worker for Cron Jobs
+  - type: worker
+    name: icehrm-worker
+    runtime: docker
+    dockerfilePath: ./Dockerfile-worker
+    dockerContext: .
+    plan: starter
+    dockerCommand: /usr/sbin/crond -f -l 8
+    buildArgs:
+      EXE_ENV: prod
+    envVars:
+      - key: DB_HOST
+        fromService:
+          name: icehrm
+          type: web
+          envVarKey: DB_HOST
+      - key: DB_NAME
+        fromService:
+          name: icehrm
+          type: web
+          envVarKey: DB_NAME
+      - key: DB_USER
+        fromService:
+          name: icehrm
+          type: web
+          envVarKey: DB_USER
+      - key: DB_PASSWORD
+        fromService:
+          name: icehrm
+          type: web
+          envVarKey: DB_PASSWORD
