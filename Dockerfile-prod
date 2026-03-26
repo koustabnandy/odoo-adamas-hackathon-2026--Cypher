@@ -8,15 +8,20 @@ COPY package.json package-lock.json* ./
 COPY web/package.json web/package-lock.json* ./web/
 COPY gulpfile.js ./
 
-# Copy source files needed for build
+# Copy all source files needed for build
+COPY index.php ./
 COPY web/ ./web/
 COPY app/ ./app/
 COPY core/ ./core/
 COPY extensions/ ./extensions/
+COPY docker/ ./docker/
 
 # Install dependencies and build assets
 RUN npm install && cd web && npm install && cd ..
 RUN npm run asset:build:prod
+
+# Verify files exist
+RUN ls -la /build/ && ls -la /build/app/
 
 # Production stage
 FROM alpine:3.17.1
@@ -34,27 +39,30 @@ RUN apk --no-cache add \
 RUN ln -sf /usr/bin/php81 /usr/bin/php
 
 # Configure nginx
-COPY docker/prod/config/nginx.conf /etc/nginx/nginx.conf
+COPY --from=builder /build/docker/prod/config/nginx.conf /etc/nginx/nginx.conf
 
 # Configure PHP-FPM
-COPY docker/prod/config/fpm-pool.conf /etc/php81/php-fpm.d/www.conf
-COPY docker/prod/config/php.ini /etc/php81/conf.d/custom.ini
+COPY --from=builder /build/docker/prod/config/fpm-pool.conf /etc/php81/php-fpm.d/www.conf
+COPY --from=builder /build/docker/prod/config/php.ini /etc/php81/conf.d/custom.ini
 
 # Configure supervisord
-COPY docker/prod/config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY --from=builder /build/docker/prod/config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Setup document root
 RUN mkdir -p /var/www/html
 
 # Copy application code from builder (with compiled assets)
+COPY --from=builder --chown=nobody:nobody /build/index.php /var/www/html/index.php
 COPY --from=builder --chown=nobody:nobody /build/app /var/www/html/app/
 COPY --from=builder --chown=nobody:nobody /build/core /var/www/html/core/
 COPY --from=builder --chown=nobody:nobody /build/extensions /var/www/html/extensions/
 COPY --from=builder --chown=nobody:nobody /build/web /var/www/html/web/
-COPY --chown=nobody:nobody ./index.php /var/www/html/index.php
 
-# Copy production config
-COPY --chown=nobody:nobody ./docker/prod/config/config.php /var/www/html/app/config.php
+# Copy production config (overwrites the one from app/)
+COPY --from=builder --chown=nobody:nobody /build/docker/prod/config/config.php /var/www/html/app/config.php
+
+# Verify files were copied
+RUN ls -la /var/www/html/ && ls -la /var/www/html/app/
 
 # Create data directory for uploads and logs
 RUN mkdir -p /var/www/html/app/data && \
