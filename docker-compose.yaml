@@ -15,7 +15,9 @@ services:
       - ./docker/development/db_data:/var/lib/mysql
 
   icehrm:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile-dev
     ports:
       - 9080:8080
     environment:

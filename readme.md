@@ -5,109 +5,113 @@ IceHrm is an [HRM software](https://icehrm.com) which enable companies to manage
 
 ## Installation
 
-### Update your existing IceHrm installation to the latest version
+### Setup a Linux Server and Install IceHrm
+- Please check [Installation guide](https://icehrm.com/docs/installation/install-linux).
 
-- CD into the IceHrm installation directory (e,g `cd /var/www/icehrm`)
-- Run `npm install -g icehrm-update`
-- If you get an error due to not having Node.js installed use instructions in [Node.js download page](https://nodejs.org/en/download) to install it first.
-- Then run `icehrm-update`
+### Installation using Docker
 
-This will update your IceHrm installation to the latest version
+#### Prerequisites
 
-### Using Docker
+Install Docker on your system. See [Docker Installation Guide](docs/docker-installation.md) for detailed instructions for macOS, Windows, and Linux.
 
-- Install docker on Mac, Windows or Linux [https://docs.docker.com/get-docker/](https://docs.docker.com/get-docker/)
-- Download the [latest version of IceHrm](https://github.com/gamonoid/icehrm/releases/latest) and extract it.
-- Alternatively you can cone the repo `git clone https://github.com/gamonoid/icehrm.git`
-```
-cd icehrm
-npm run setup
-npm run docker:build
-npm run docker:start
-```
+#### Quick Start (Production)
 
-- Visit [http://localhost:3128/](http://localhost:3128/) and login using `admin` as username and password.
-- Visit [http://localhost:3130/](http://localhost:3130/) to access phpmyadmin.
-- All user uploaded files are stored under `icehrm/docker/production/app_data`
-
-### Installation (without docker)
-- Please check [Installation guide](https://icehrm.com/explore/docs/installation/).
-
-
-## Setup Development Environment
-```
+```bash
+# Clone the repository
 git clone https://github.com/gamonoid/icehrm.git
 cd icehrm
-docker-compose up -d
-```
-- Visit [http://localhost:9080/](http://localhost:9080/) and login using `admin` as username and password.
-- Watch this for more detailed instructions: [https://www.youtube.com/watch?v=sz8OV_ON6S8](https://www.youtube.com/watch?v=sz8OV_ON6S8)
 
-### Extend IceHrm with custom Extensions
-- Inorder to create an admin extension run
-```
-php ice create:extension sample admin
+# Build and start IceHrm
+docker compose -f docker-compose-prod.yaml up -d --build
 ```
 
-![](docs/images/icehrm-create-ext.gif)
+Visit [http://localhost:5555](http://localhost:5555) and login with username `admin` and password `admin`.
 
+**Note:** The Docker build automatically runs `npm install` and `npm run asset:build:prod` to compile frontend assets. The first build may take a few minutes.
 
-- Refresh IceHrm to see a new menu item called `Sample Admin`
-- The extension code can br found under `icehrm/extensions/sample/admin`
-- Refer: [https://icehrm.com/explore/docs/extensions/](https://icehrm.com/explore/docs/extensions/) for more details.
+#### Configuration (Optional)
 
-### Building frontend assets
+To customize your installation, create a `.env` file:
 
-- When ever you have done a change to JavaScript or CSS files in icehrm/web you need to rebuild the frontend
-- First make sure you have all the dependencies (just doing this once is enough)
-```
-cd icehrm/web
-npm install
-cd ..
-npm install
+```bash
+cp docker-prod.env.example .env
 ```
 
-- Build assets during development
-```
-gulp clean
-gulp
+Edit `.env` to change settings:
+
+```env
+# Port where IceHrm will be accessible
+APP_PORT=5555
+
+# Base URL (change for production domain)
+APP_BASE_URL=http://localhost:5555
+
+# Database credentials (change these in production!)
+DB_HOST=mysql
+DB_NAME=icehrm
+DB_USER=icehrm
+DB_PASSWORD=your_secure_password
+DB_ROOT_PASSWORD=your_secure_root_password
 ```
 
-- Build assets for production
-```
-gulp clean
-gulp --eprod
+Then restart the containers:
+
+```bash
+docker compose -f docker-compose-prod.yaml down
+docker compose -f docker-compose-prod.yaml up -d
 ```
 
-- Build extensions
-```
-gulp ejs --xextension_name/admin
+#### Using an External Database
+
+To connect IceHrm to an external MySQL database (e.g., AWS RDS, Azure Database, or your own MySQL server):
+
+1. Create a `.env` file with your external database settings:
+
+```env
+APP_PORT=5555
+APP_BASE_URL=http://localhost:5555
+
+# External database configuration
+DB_HOST=your-database-host.example.com
+DB_NAME=icehrm
+DB_USER=your_db_user
+DB_PASSWORD=your_db_password
 ```
 
-### Debugging code with psysh
-You can run psysh inside the icehrm web docker container to manually debug the code.
-- Start Psysh console
-``` 
-docker compose up -d
-docker exec -it icehrm-icehrm-1 /bin/sh
-./psysh -c ./.config/psysh/config.php
-```
-This will open a psysh console. You can instantiate any IceHrm class and debug it.
-Here is an example of creating an employee object and loading an employee from the database.
-```
-$emp = new \Employees\Common\Model\Employee();
-$emp->Load('id = ?',[1]);
-var_dump($emp);
+2. Import the database schema to your external database:
+
+```bash
+mysql -h your-database-host.example.com -u your_db_user -p icehrm < docker/init.sql
 ```
 
-### Useful Links
-* IceHrm Opensource Blog: [http://icehrm.org](http://icehrm.org)
-* IceHrm Cloud Hosting: [https://icehrm.com](https://icehrm.com)
-* IceHrm Documentation (Opensource and Commercial): [https://icehrm.com/explore/docs/](https://icehrm.com/explore/docs/)
-* IceHrm Blog: [https://icehrm.com/blog](http://icehrm.com/blog)
-* Purchase Extensions: [https://icehrm.com//buy-icehrm-modules](https://icehrm.com//buy-icehrm-modules)
-* Report Issues: [https://github.com/gamonoid/icehrm/issues](https://github.com/gamonoid/icehrm/issues)
+3. Start only the application containers (without the bundled MySQL):
 
-### Check Out our Sponsors
-* Monitor your IceHrm with [uptimely.cloud](https://uptimely.cloud/?utm_source=icehrm_readme&utm_medium=referral)
+```bash
+docker compose -f docker-compose-prod.yaml up -d icehrm icehrm-worker
+```
 
+#### Docker Services
+
+| Service | Description | Port |
+|---------|-------------|------|
+| icehrm | Main application | 5555 |
+| mysql | Database server | - |
+| icehrm-worker | Background jobs | - |
+
+#### Data Persistence
+
+All data is persisted in Docker volumes:
+- `icehrm-mysql-data` - Database files
+- `icehrm-app-data` - Uploaded files and logs
+
+#### Stopping IceHrm
+
+```bash
+docker compose -f docker-compose-prod.yaml down
+```
+
+#### Viewing Logs
+
+```bash
+docker compose -f docker-compose-prod.yaml logs -f
+```
