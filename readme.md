@@ -21,11 +21,13 @@ Install Docker on your system. See [Docker Installation Guide](docs/docker-insta
 git clone https://github.com/gamonoid/icehrm.git
 cd icehrm
 
-# Start IceHrm
-docker compose -f docker-compose-prod.yaml up -d
+# Build and start IceHrm
+docker compose -f docker-compose-prod.yaml up -d --build
 ```
 
 Visit [http://localhost:5555](http://localhost:5555) and login with username `admin` and password `admin`.
+
+**Note:** The Docker build automatically runs `npm install` and `npm run asset:build:prod` to compile frontend assets. The first build may take a few minutes.
 
 #### Configuration (Optional)
 
@@ -118,37 +120,44 @@ docker compose -f docker-compose-prod.yaml logs -f
 
 IceHrm can be deployed to [Render](https://render.com) using the included `render.yaml` blueprint.
 
-#### Prerequisites
+The blueprint includes:
+- **icehrm** - Main web application
+- **icehrm-mysql** - MySQL database (private service with 10GB disk)
+- **icehrm-worker** - Background job processor
 
-Since Render doesn't offer managed MySQL, you'll need an external MySQL database:
+**Note:** The build process automatically runs `npm install` and `npm run asset:build:prod` to compile frontend assets.
+
+#### Deployment Steps
+
+1. **Fork this repository** to your GitHub account
+
+2. **Deploy to Render:**
+   - Go to [Render Dashboard](https://dashboard.render.com/blueprints)
+   - Click **New Blueprint Instance**
+   - Connect your forked repository
+   - Set the `APP_BASE_URL` environment variable to your Render app URL (e.g., `https://icehrm-xxx.onrender.com`)
+
+3. **Wait for deployment** - The first build may take several minutes
+
+4. **Initialize the database** - After MySQL is running, connect and import the schema:
+   ```bash
+   # Get your MySQL password from Render dashboard (icehrm-mysql > Environment)
+   mysql -h <render-mysql-host> -u icehrm -p icehrm < docker/init.sql
+   ```
+
+5. **Access IceHrm** at your Render URL and login with `admin` / `admin`
+
+#### Using an External Database with Render
+
+For production, you may prefer a managed MySQL provider:
 - [PlanetScale](https://planetscale.com) (recommended, has free tier)
 - [AWS RDS](https://aws.amazon.com/rds/mysql/)
 - [DigitalOcean Managed MySQL](https://www.digitalocean.com/products/managed-databases-mysql)
 
-#### Deployment Steps
-
-1. **Create a MySQL database** with your chosen provider
-
-2. **Import the IceHrm schema** to your database:
-   ```bash
-   mysql -h <host> -u <user> -p <database> < docker/init.sql
-   ```
-
-3. **Fork this repository** to your GitHub account
-
-4. **Deploy to Render:**
-   - Go to [Render Dashboard](https://dashboard.render.com/blueprints)
-   - Click **New Blueprint Instance**
-   - Connect your forked repository
-   - Set the required environment variables:
-     - `APP_BASE_URL` - Your Render app URL (e.g., `https://icehrm-xxx.onrender.com`)
-     - `DB_HOST` - Your MySQL host
-     - `DB_USER` - Database username
-     - `DB_PASSWORD` - Database password
-
-5. **Deploy** and wait for the services to start
-
-6. **Access IceHrm** at your Render URL and login with `admin` / `admin`
+To use an external database, override these environment variables in Render:
+- `DB_HOST` - Your external MySQL host
+- `DB_USER` - Database username
+- `DB_PASSWORD` - Database password
 
 ### Update your existing IceHrm installation to the latest version
 

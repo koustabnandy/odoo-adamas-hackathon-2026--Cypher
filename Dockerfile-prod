@@ -1,3 +1,24 @@
+# Build stage - compile assets
+FROM node:18-alpine AS builder
+
+WORKDIR /build
+
+# Copy package files
+COPY package.json package-lock.json* ./
+COPY web/package.json web/package-lock.json* ./web/
+COPY gulpfile.js ./
+
+# Copy source files needed for build
+COPY web/ ./web/
+COPY app/ ./app/
+COPY core/ ./core/
+COPY extensions/ ./extensions/
+
+# Install dependencies and build assets
+RUN npm install && cd web && npm install && cd ..
+RUN npm run asset:build:prod
+
+# Production stage
 FROM alpine:3.17.1
 LABEL Maintainer="Thilina Pituwala <thilina@icehrm.com>" \
       Description="IceHrm Production Container with Nginx & PHP-FPM based on Alpine Linux."
@@ -25,11 +46,11 @@ COPY docker/prod/config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 # Setup document root
 RUN mkdir -p /var/www/html
 
-# Copy application code
-COPY --chown=nobody:nobody ./app /var/www/html/app/
-COPY --chown=nobody:nobody ./core /var/www/html/core/
-COPY --chown=nobody:nobody ./extensions /var/www/html/extensions/
-COPY --chown=nobody:nobody ./web /var/www/html/web/
+# Copy application code from builder (with compiled assets)
+COPY --from=builder --chown=nobody:nobody /build/app /var/www/html/app/
+COPY --from=builder --chown=nobody:nobody /build/core /var/www/html/core/
+COPY --from=builder --chown=nobody:nobody /build/extensions /var/www/html/extensions/
+COPY --from=builder --chown=nobody:nobody /build/web /var/www/html/web/
 COPY --chown=nobody:nobody ./index.php /var/www/html/index.php
 
 # Copy production config
