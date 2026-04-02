@@ -1,117 +1,172 @@
 IceHrm
 ===========
 
-IceHrm is an [HRM software](https://icehrm.com) which enable companies to manage employee details and HR workflows.
+IceHrm is a comprehensive [HRM software](https://icehrm.com) that enables companies to manage employee information, track attendance, handle leave requests, and streamline HR workflows.
 
-## Installation
+![IceHrm Dashboard](docs/images/icehrm-dashboard.png)
 
-### Setup a Linux Server and Install IceHrm
-- Please check [Installation guide](https://icehrm.com/docs/installation/install-linux).
+---
 
-### Installation using Docker
+## Getting Started
 
-#### Prerequisites
+> **💡 Prefer not to self-host?** IceHrm is available as a fully managed service at [icehrm.com](https://icehrm.com) — no installation or maintenance required.
 
-Install Docker on your system. See [Docker Installation Guide](docs/docker-installation.md) for detailed instructions for macOS, Windows, and Linux.
+<table>
+<tr>
+<td align="center" colspan="2">
 
-#### Quick Start (Production)
+### How do you want to use IceHrm?
 
-```bash
-# Clone the repository
-git clone https://github.com/gamonoid/icehrm.git
-cd icehrm
+</td>
+</tr>
+<tr>
+<td align="center" width="50%">
 
-# Build and start IceHrm
-docker compose -f docker-compose-prod.yaml up -d --build
-```
+### 🚀 PRODUCTION
+**Deploy for your organization**
 
-Visit [http://localhost:5555](http://localhost:5555) and login with username `admin` and password `admin`.
+⬇️
 
-**Note:** The Docker build automatically runs `npm install` and `npm run asset:build:prod` to compile frontend assets. The first build may take a few minutes.
+</td>
+<td align="center" width="50%">
 
-#### Configuration (Optional)
+### 🛠️ DEVELOPMENT
+**Contribute or extend IceHrm**
 
-To customize your installation, create a `.env` file:
+⬇️
 
-```bash
-cp docker-prod.env.example .env
-```
+[Setup Development Environment](docs/setup-development-environment.md)
 
-Edit `.env` to change settings:
+</td>
+</tr>
+</table>
 
-```env
-# Port where IceHrm will be accessible
-APP_PORT=5555
+---
 
-# Base URL (change for production domain)
-APP_BASE_URL=http://localhost:5555
+## Production Deployment
 
-# Database credentials (change these in production!)
-DB_HOST=mysql
-DB_NAME=icehrm
-DB_USER=icehrm
-DB_PASSWORD=your_secure_password
-DB_ROOT_PASSWORD=your_secure_root_password
-```
+> **Choose your deployment method:**
 
-Then restart the containers:
+<table>
+<tr>
+<td align="center" width="50%">
 
-```bash
-docker compose -f docker-compose-prod.yaml down
-docker compose -f docker-compose-prod.yaml up -d
-```
+### 🐳 Option A: Docker
 
-#### Using an External Database
+**Fastest way to get started**
 
-To connect IceHrm to an external MySQL database (e.g., AWS RDS, Azure Database, or your own MySQL server):
+Ideal for quick deployments and containerized environments.
 
-1. Create a `.env` file with your external database settings:
+➡️ [**Docker Quick Start Guide**](docs/docker-quickstart.md)
 
-```env
-APP_PORT=5555
-APP_BASE_URL=http://localhost:5555
+</td>
+<td align="center" width="50%">
 
-# External database configuration
-DB_HOST=your-database-host.example.com
-DB_NAME=icehrm
-DB_USER=your_db_user
-DB_PASSWORD=your_db_password
-```
+### 🖥️ Option B: Linux VPS
 
-2. Import the database schema to your external database:
+**Traditional server deployment**
 
-```bash
-mysql -h your-database-host.example.com -u your_db_user -p icehrm < docker/init.sql
-```
+Full control over your environment and custom configurations.
 
-3. Start only the application containers (without the bundled MySQL):
+➡️ [**Linux Installation Guide**](https://icehrm.com/docs/installation/install-linux)
 
-```bash
-docker compose -f docker-compose-prod.yaml up -d icehrm icehrm-worker
-```
+</td>
+</tr>
+</table>
 
-#### Docker Services
+![IceHrm Installation](docs/images/IceHrm-installation.gif)
 
-| Service | Description | Port |
-|---------|-------------|------|
-| icehrm | Main application | 5555 |
-| mysql | Database server | - |
-| icehrm-worker | Background jobs | - |
+---
 
-#### Data Persistence
+## After Installation
 
-All data is persisted in Docker volumes:
-- `icehrm-mysql-data` - Database files
-- `icehrm-app-data` - Uploaded files and logs
+<table>
+<tr>
+<td align="center">
 
-#### Stopping IceHrm
+### ✅ IceHrm is Running!
 
-```bash
-docker compose -f docker-compose-prod.yaml down
-```
+⬇️
 
-#### Viewing Logs
+</td>
+</tr>
+</table>
 
-```bash
-docker compose -f docker-compose-prod.yaml logs -f
-```
+<table>
+<tr>
+<td align="center">
+
+### Step 1: Connect to IceHrm.com
+
+Link your installation to unlock extensions and receive updates.
+
+➡️ [**Connection Guide**](https://icehrm.com/docs/extension-management/connecting-to-icehrm)
+
+⬇️
+
+</td>
+</tr>
+<tr>
+<td align="center">
+
+### Step 2: Install Extensions
+
+Expand IceHrm with powerful modules for your business needs.
+
+➡️ [**Extension Installation Guide**](https://icehrm.com/docs/extension-management/purchasing-extensions)
+
+⬇️
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🎁 Free Extensions
+
+> **These extensions are FREE after connecting to IceHrm.com:**
+
+| Extension | Description | |
+|-----------|-------------|:---:|
+| **Payroll** | Comprehensive payroll management with salary calculations, deductions, and pay slip generation | [View Details](https://icehrm.com/module/payroll) |
+| **Team** | Team collaboration tools for better communication and project coordination | [View Details](https://icehrm.com/module/team) |
+| **Reports** | Advanced reporting and analytics for HR metrics and insights | [View Details](https://icehrm.com/module/reports) |
+| **Directory** | Employee directory with search, filtering, and organizational views | [View Details](https://icehrm.com/module/directory) |
+| **Company Overview** | Dashboard with company-wide statistics and HR metrics at a glance | [View Details](https://icehrm.com/module/company-overview) |
+
+---
+
+## Screenshots
+
+### Core HR Management
+
+| Employee Management | Leave Management |
+|:-------------------:|:----------------:|
+| ![Employee Management](https://icehrm.com/assets/images/employee-management.png) | ![Leave Management](https://icehrm.com/assets/images/leave-management.png) |
+
+Centralized employee data management with automated workflows for personal info, documents, and qualifications.
+
+### Time & Payroll
+
+| Attendance Tracking | Payroll & Reports |
+|:-------------------:|:-----------------:|
+| ![Attendance](https://icehrm.com/assets/images/attendance-tracking.png) | ![Payroll](https://icehrm.com/assets/images/payroll-management.png) |
+
+Comprehensive time tracking with timesheet analytics and integrated payroll processing.
+
+### Organization & Projects
+
+| Organization Structure | Project Insights |
+|:----------------------:|:----------------:|
+| ![Org Structure](https://icehrm.com/assets/images/org-structure.png) | ![Projects](https://icehrm.com/assets/images/project-view.png) |
+
+Visualize company hierarchy and track project progress with detailed analytics.
+
+---
+
+## Resources
+
+- [Official Documentation](https://icehrm.com/docs)
+- [Extension Marketplace](https://icehrm.com/explore)
+- [Community Support](https://github.com/gamonoid/icehrm/issues)
