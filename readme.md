@@ -3,8 +3,29 @@ IceHrm
 
 IceHrm is a comprehensive [HRM software](https://icehrm.com) that enables companies to manage employee information, track attendance, handle leave requests, and streamline HR workflows.
 
-![IceHrm Dashboard](docs/images/icehrm-dashboard.png)
+### Core HR Management
 
+| Employee Management | Leave Management |
+|:-------------------:|:----------------:|
+| ![Employee Management](https://icehrm.com/assets/images/employee-management.png) | ![Leave Management](https://icehrm.com/assets/images/leave-management.png) |
+
+Centralized employee data management with automated workflows for personal info, documents, and qualifications.
+
+### Time & Payroll
+
+| Attendance Tracking | Payroll & Reports |
+|:-------------------:|:-----------------:|
+| ![Attendance](https://icehrm.com/assets/images/attendance-tracking.png) | ![Payroll](https://icehrm.com/assets/images/payroll-management.png) |
+
+Comprehensive time tracking with timesheet analytics and integrated payroll processing.
+
+### Organization & Projects
+
+| Organization Structure | Project Insights |
+|:----------------------:|:----------------:|
+| ![Org Structure](https://icehrm.com/assets/images/org-structure.png) | ![Projects](https://icehrm.com/assets/images/project-view.png) |
+
+Visualize company hierarchy and track project progress with detailed analytics.
 ---
 
 ## Getting Started
@@ -135,33 +156,6 @@ Expand IceHrm with powerful modules for your business needs.
 | **Directory** | Employee directory with search, filtering, and organizational views | [View Details](https://icehrm.com/module/directory) |
 | **Company Overview** | Dashboard with company-wide statistics and HR metrics at a glance | [View Details](https://icehrm.com/module/company-overview) |
 
----
-
-## Screenshots
-
-### Core HR Management
-
-| Employee Management | Leave Management |
-|:-------------------:|:----------------:|
-| ![Employee Management](https://icehrm.com/assets/images/employee-management.png) | ![Leave Management](https://icehrm.com/assets/images/leave-management.png) |
-
-Centralized employee data management with automated workflows for personal info, documents, and qualifications.
-
-### Time & Payroll
-
-| Attendance Tracking | Payroll & Reports |
-|:-------------------:|:-----------------:|
-| ![Attendance](https://icehrm.com/assets/images/attendance-tracking.png) | ![Payroll](https://icehrm.com/assets/images/payroll-management.png) |
-
-Comprehensive time tracking with timesheet analytics and integrated payroll processing.
-
-### Organization & Projects
-
-| Organization Structure | Project Insights |
-|:----------------------:|:----------------:|
-| ![Org Structure](https://icehrm.com/assets/images/org-structure.png) | ![Projects](https://icehrm.com/assets/images/project-view.png) |
-
-Visualize company hierarchy and track project progress with detailed analytics.
 
 ---
 
